@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #2d3748;
+        }
+
+        .dashboard-container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background-color: #ff4757;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: #ff6b81;
+            transform: translateY(-1px);
+        }
+
+        .transaction-form {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-section {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+        .form-group {
+            position: relative;
+            margin: 15px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66,153,225,0.1);
+        }
+
+        .button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .add-btn {
+            background-color: #4299e1;
+            color: white;
+        }
+
+        .add-btn:hover {
+            background-color: #3182ce;
+            transform: translateY(-1px);
+        }
+
+        .delete-btn {
+            background-color: #feb2b2;
+            color: #c53030;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .delete-btn:hover {
+            background-color: #fc8181;
+        }
+
+        .submit-btn {
+            background-color: #48bb78;
+            color: white;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            background-color: #38a169;
+        }
+
+        .error {
+            color: #e53e3e;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .confirmation {
+            padding: 8px;
+            margin: 10px 0;
+            border-radius: 6px;
+            background-color: #c6f6d5;
+            color: #2f855a;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .transaction-summary {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .summary-item {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+        .positive { color: #38a169; }
+        .negative { color: #e53e3e; }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .ledger {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+
+        .ledger-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .ledger-table th, .ledger-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .ledger-table th {
+            background-color: #f8fafc;
+            font-weight: 500;
+        }
+
+        .ledger-row {
+            transition: all 0.3s ease;
+        }
+
+        .ledger-row:hover {
+            background-color: #f8fafc;
+        }
+
+        .edit-btn {
+            background-color: #4299e1;
+            margin-right: 5px;
+        }
+
+        .amount-input {
+            width: 150px;
+        }
+
+        .running-total {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            font-size: 24px;
+            font-weight: 500;
+            z-index: 1000;
+        }
+
+        .analysis-buttons {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .question-btn {
+            background-color: #805ad5;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            flex: 1;
+            min-width: 250px;
+            text-align: left;
+        }
+
+        .question-btn:hover {
+            background-color: #6b46c1;
+            transform: translateY(-2px);
+        }
+
+        .result-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 1001;
+            display: none;
+        }
+
+        .result-popup h3 {
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+
+        .result-popup .amount {
+            font-size: 28px;
+            font-weight: 500;
+            margin: 15px 0;
+        }
+
+        .close-popup {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #a0aec0;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 1000;
+        }
+    </style>
+    <script>
+        function validateInput(input, isDeposit) {
+            const value = parseFloat(input.value);
+            const errorDiv = input.parentElement.querySelector('.error');
+            
+            if (isDeposit && value < 0) {
+                errorDiv.style.display = 'block';
+                input.setCustomValidity('Deposits must be positive numbers');
+            } else if (!isDeposit && value > 0) {
+                errorDiv.style.display = 'block';
+                input.setCustomValidity('Withdrawals must be negative numbers');
+            } else {
+                errorDiv.style.display = 'none';
+                input.setCustomValidity('');
+            }
+        }
+
+        let transactions = [];
+
+        async function addTransaction(type) {
+            const container = document.getElementById(type + '-container');
+            const input = container.querySelector('input[type="number"]');
+            const amount = parseFloat(input.value);
+
+            if (isNaN(amount)) return;
+
+            if ((type === 'deposits' && amount <= 0) || 
+                (type === 'withdrawals' && amount >= 0)) {
+                alert('Invalid amount for ' + type);
+                return;
+            }
+
+            const transaction = {
+                amount: type === 'deposits' ? amount : -amount,
+                date: new Date().toISOString()
+            };
+
+            try {
+                const response = await fetch('/api/transactions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(transaction)
+                });
+
+                if (response.ok) {
+                    const savedTransaction = await response.json();
+                    transactions.push(savedTransaction);
+                    updateLedger();
+                    showConfirmation(type);
+                    input.value = '';
+                    updateRunningTotal();
+                } else {
+                    alert('Failed to save transaction');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error saving transaction');
+            }
+        }
+
+        async function loadTransactions() {
+            try {
+                const response = await fetch('/api/transactions');
+                if (response.ok) {
+                    transactions = await response.json();
+                    updateLedger();
+                    updateRunningTotal();
+                }
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadTransactions);
+
+        function updateLedger() {
+            const ledger = document.getElementById('ledger-body');
+            ledger.innerHTML = '';
+
+            transactions.forEach(transaction => {
+                const row = document.createElement('tr');
+                row.className = 'ledger-row';
+                row.id = `transaction-${transaction.id}`;
+                row.innerHTML = `
+                    <td>${transaction.type === 'deposits' ? 'Deposit' : 'Withdrawal'}</td>
+                    <td class="${transaction.type === 'deposits' ? 'positive' : 'negative'}">
+                        $${Math.abs(transaction.amount).toFixed(2)}
+                    </td>
+                    <td>${transaction.date}</td>
+                    <td>
+                        <button class="button edit-btn" onclick="editTransaction(${transaction.id})">
+                            Edit
+                        </button>
+                        <button class="button delete-btn" onclick="deleteTransaction(${transaction.id})">
+                            Delete
+                        </button>
+                    </td>
+                `;
+                ledger.appendChild(row);
+            });
+        }
+
+        function editTransaction(id) {
+            const transaction = transactions.find(t => t.id === id);
+            const row = document.getElementById(`transaction-${id}`);
+            
+            row.cells[1].innerHTML = `
+                <input type="number" class="amount-input" value="${Math.abs(transaction.amount)}"
+                       onchange="validateInput(this, ${transaction.type === 'deposits'})" />
+                <button class="button add-btn" onclick="saveEdit(${id})">Save</button>
+            `;
+        }
+
+        async function saveEdit(id) {
+            const row = document.getElementById(`transaction-${id}`);
+            const newAmount = parseFloat(row.querySelector('.amount-input').value);
+            const transaction = transactions.find(t => t.id === id);
+
+            if (!isNaN(newAmount)) {
+                const updatedTransaction = {
+                    ...transaction,
+                    amount: transaction.type === 'deposits' ? newAmount : -newAmount
+                };
+
+                try {
+                    const response = await fetch(`/api/transactions/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(updatedTransaction)
+                    });
+
+                    if (response.ok) {
+                        const saved = await response.json();
+                        const index = transactions.findIndex(t => t.id === id);
+                        transactions[index] = saved;
+                        updateLedger();
+                        updateRunningTotal();
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error updating transaction');
+                }
+            }
+        }
+
+        async function deleteTransaction(id) {
+            try {
+                const response = await fetch(`/api/transactions/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    transactions = transactions.filter(t => t.id !== id);
+                    const row = document.getElementById(`transaction-${id}`);
+                    row.style.opacity = '0';
+                    row.style.transform = 'translateX(20px)';
+                    setTimeout(() => {
+                        updateLedger();
+                        updateRunningTotal();
+                    }, 300);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error deleting transaction');
+            }
+        }
+
+        function showConfirmation(type) {
+            const container = document.getElementById(type + '-container');
+            const confirmation = document.createElement('div');
+            confirmation.className = 'confirmation';
+            confirmation.textContent = `Transaction added to ledger`;
+            confirmation.style.opacity = '1';
+            container.appendChild(confirmation);
+            setTimeout(() => {
+                confirmation.style.opacity = '0';
+                setTimeout(() => confirmation.remove(), 300);
+            }, 3000);
+        }
+
+        function updateRunningTotal() {
+            const total = transactions.reduce((sum, t) => sum + t.amount, 0);
+            const totalElement = document.getElementById('total-amount');
+            totalElement.textContent = `$${Math.abs(total).toFixed(2)}`;
+            totalElement.className = total >= 0 ? 'positive' : 'negative';
+        }
+
+        function showLargestDeposit() {
+            const deposits = transactions.filter(t => t.amount > 0);
+            if (deposits.length === 0) {
+                showPopup('Largest Deposit', 'No deposits found', '');
+                return;
+            }
+            const largest = deposits.reduce((max, t) => t.amount > max.amount ? t : max);
+            showPopup('Largest Deposit', 
+                     `$${largest.amount.toFixed(2)}`,
+                     `Made on ${largest.date}`);
+        }
+
+        function showLargestWithdrawal() {
+            const withdrawals = transactions.filter(t => t.amount < 0);
+            if (withdrawals.length === 0) {
+                showPopup('Largest Withdrawal', 'No withdrawals found', '');
+                return;
+            }
+            const largest = withdrawals.reduce((max, t) => Math.abs(t.amount) > Math.abs(max.amount) ? t : max);
+            showPopup('Largest Withdrawal', 
+                     `$${Math.abs(largest.amount).toFixed(2)}`,
+                     `Made on ${largest.date}`);
+        }
+
+        function showPopup(title, amount, date) {
+            document.getElementById('popup-title').textContent = title;
+            document.getElementById('popup-amount').textContent = amount;
+            document.getElementById('popup-date').textContent = date;
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('result-popup').style.display = 'block';
+        }
+
+        function closePopup() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('result-popup').style.display = 'none';
+        }
+    </script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h1>Transaction Analysis Dashboard</h1>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+
+        <div class="running-total">
+            Balance: <span id="total-amount" class="positive">$0.00</span>
+        </div>
+
+        <div class="transaction-form">
+            <h2>Enter Transactions</h2>
+            <form action="/analyze-transactions" method="post" id="transactionForm">
+                <div class="form-section">
+                    <h3>Deposits (Positive Numbers)</h3>
+                    <div id="deposits-container">
+                        <div class="form-group">
+                            <input type="number" step="0.01" name="deposits" 
+                                   onchange="validateInput(this, true)" 
+                                   placeholder="Enter deposit amount" required/>
+                            <div class="error">Deposits must be positive numbers</div>
+                        </div>
+                    </div>
+                    <button type="button" class="button add-btn" onclick="addTransaction('deposits')">
+                        Add Another Deposit
+                    </button>
+                </div>
+
+                <div class="form-section">
+                    <h3>Withdrawals (Negative Numbers)</h3>
+                    <div id="withdrawals-container">
+                        <div class="form-group">
+                            <input type="number" step="0.01" name="withdrawals" 
+                                   onchange="validateInput(this, false)" 
+                                   placeholder="Enter withdrawal amount" required/>
+                            <div class="error">Withdrawals must be negative numbers</div>
+                        </div>
+                    </div>
+                    <button type="button" class="button add-btn" onclick="addTransaction('withdrawals')">
+                        Add Another Withdrawal
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="ledger">
+            <h2>Transaction Ledger</h2>
+            <table class="ledger-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Date Added</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="ledger-body">
+                    <!-- Transactions will be added here dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="analysis-buttons">
+            <button class="question-btn" onclick="showLargestDeposit()">
+                💰 What was my largest deposit?
+            </button>
+            <button class="question-btn" onclick="showLargestWithdrawal()">
+                📤 What was my largest withdrawal?
+            </button>
+        </div>
+
+        <div class="overlay" id="overlay"></div>
+        <div class="result-popup" id="result-popup">
+            <button class="close-popup" onclick="closePopup()">×</button>
+            <h3 id="popup-title"></h3>
+            <div id="popup-amount" class="amount"></div>
+            <div id="popup-date"></div>
+        </div>
+    </div>
+</body>
+</html> 
